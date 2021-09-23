@@ -1,0 +1,129 @@
+Git : A VCS (Has client and Server copy, failure tolerant, overwrite is hard, history is maintained locally and on server)
+
+Repository : (Editable files + Meta data like history)
+
+.git : located in root directory of repo, contain metadata, should not be edited.
+
+------set up config
+>>git config --list : list all current config
+>> git config --global user.name "Girish-Gupta"
+>>git config --global user.email "girish.gupta@vodafone.com"
+
+base command : 
+
+>> cd repo
+>> git status: displays a list of the files that have been modified since the last time changes were saved. it also shows you which files are in this staging area, and which files have changes that haven't yet been put there
+
+File movement:
+FILE >> EDIT (remains in stagging area) >> COMMIT (Permanent Storage)
+Add file to staging area and commit it 
+
+
+>> git diff filename: compare the file as it currently to what was last saved
+>> git diff (no filename) : show you all the changes in your repository
+>> git diff directory:  will show you the changes to the files in some directory.
+
+diff output :
+diff --git a/report.txt b/report.txt (diff command used , a and b are two versions here)
+index e713b17..4c0742a 100644 (internal DB reference)
+--- a/report.txt 
++++ b/report.txt
+@@ -1,4 +1,5 @@
+-# Seasonal data 2017-18
++# Seasonal data (2017) 2017-18
++# TODO: write new summary
+
+(-) line : deleted, (+) line added, @@ : where changes are made in (start line , number of lines changed)
+RStudio can turn diffs like this into a more readable side-by-side display.
+
+>> git add filename: Adds file to staging area and check with "git status" 
+>> git rm filename : Remove file from git stagging 
+
+
+>> git diff -r HEAD path/to/file: HEAD is added to only latest changes. without filename all files will be displayed . -r means compare to a particular revision
+
+>> git commit -m "comment to explain the commit"
+>> git commit --amend - m "new message"
+>> -a  option for ammend and -m option for adding a msg otherwise text editor will open.
+
+>> git log : to view commit history
+>> git config list: to see all settings
+
+.gitignore: add all files you dont want git to track like *.jpeg, 
+
+--------Undoing things
+>>git commit --amend -m "Overwrite last thing"
+This will overwrite the last commit
+
+>>git reset sample.txt 
+This will ustage the file from staging area
+
+>>git checkout sample.txt
+This will replace file with last committed file.
+
+--------------Branching in Git
+Diverge from main without messing it up
+>> git branch testing : Only creates new branch
+>> git checkout testing : This will create new branch and main branch will remain unchanged. If you change the the branch in git the working directory will also changes
+
+Try :
+Add some changes to file in testing banch and checkout master branch to see the changes reverted back.
+
+Eventually you will merge the two branches and delete non-master branch 
+>>git checkout master
+>>git merge testing
+>>git mergetool for graphical merging tool
+
+Finally delete branch by -d option
+>>git branch -d testing
+
+Check out git rebase  
+
+
+
+-------Generating private ssh key
+>> ls -al ~/.ssh   #Check current keys 
+>> ssh-keygen -t rsa -b 4096 -C "email@Vodafone.com"
+>> Enter a file in which to save the key (/c/Users/you/.ssh/id_rsa):[Press enter]
+>> Enter passphrase (empty for no passphrase): [Type a passphrase]
+>> Enter same passphrase again: [Type passphrase again]
+
+>>pbcopy < ~/.ssh/id_rsa.pub : copy key to your clipboard
+
+---Adding your SSH key to the ssh-agent
+>> eval $(ssh-agent -s)
+>> ssh-add ~/.ssh/id_rsa
+
+------Add the SSH key to your GitHub account
+https://help.github.com/en/enterprise/2.17/user/github/authenticating-to-github/adding-a-new-ssh-key-to-your-github-account
+
+--git reversing
+www.ohshitgit.com
+
+
+
+
+
+
+Code to add SSH key at start of Git everytime.
+env=~/.ssh/agent.env
+
+agent_load_env () { test -f "$env" && . "$env" >| /dev/null ; }
+
+agent_start () {
+    (umask 077; ssh-agent >| "$env")
+    . "$env" >| /dev/null ; }
+
+agent_load_env
+
+# agent_run_state: 0=agent running w/ key; 1=agent w/o key; 2= agent not running
+agent_run_state=$(ssh-add -l >| /dev/null 2>&1; echo $?)
+
+if [ ! "$SSH_AUTH_SOCK" ] || [ $agent_run_state = 2 ]; then
+    agent_start
+    ssh-add
+elif [ "$SSH_AUTH_SOCK" ] && [ $agent_run_state = 1 ]; then
+    ssh-add
+fi
+
+unset env
